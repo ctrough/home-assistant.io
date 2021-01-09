@@ -6,6 +6,8 @@ $primary-color: #049cdb;
   position: relative;
 
   .site-title {
+    display: flex;
+    align-items: center;
     font-weight: normal;
   }
 
@@ -232,7 +234,7 @@ dt:hover a.title-link {
 
   &::before {
     position: absolute;
-    top: 2px;
+    top: 5px;
     left: -25px;
     padding-right: 40px;
     font-family: "FontAwesome";
@@ -243,10 +245,14 @@ dt:hover a.title-link {
 }
 
 .ha-title {
+  display: inline-flex;
+  height: 100%;
   white-space: nowrap;
 
   img {
-    width: 40px;
+    border-radius: 3px;
+    width: 36px;
+    margin-right: 10px;
   }
 
   a > * {
@@ -361,15 +367,24 @@ article.post, article.page, article.listing {
     // Future re-design
     // margin: 1.5em 0 1rem;
   }
+
+  details {
+    padding-bottom: 1em;
+  }
 }
 
-p.note {
+p.note, div.note {
   position: relative;
 
   background: #e7f2fa;
 
   padding: 40px 12px 6px 12px;
+  margin-bottom: 24px;
   box-shadow: rgba(0,0,0,0.06) 0 0 10px;
+
+  p {
+    margin-bottom: 0px;
+  }
 
   &::before {
     font-family: "FontAwesome", sans-serif;
@@ -498,45 +513,108 @@ twitter-widget {
 
 // Configuration variables
 div.config-vars {
-  // Future re-design
-  // h3 {
-  //   border: 0;
-  //   border-top: 1px solid $primary-color;
-  //   padding-top: 1.4rem;
-  // }
+  padding-bottom: 16px;
 
-  dl {
-    margin-bottom: 1.5em;
+  .config-vars-item {
+    border-bottom: 1px solid #d9dbde;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
 
-    &.nested {
-      border-left: 1px dotted $primary-color;
-      padding-left: 6px;
+  .nested .config-vars-item:last-child {
+    border: none
+  }
+
+  .config-vars-label {
+    padding-bottom: 4px;
+    position: relative;
+
+    > span {
+      padding-right: 4px;
     }
 
-    dt {
-      font-weight: bold;
-    }
-
-    dd {
-      margin: 0 0 0.5em 1em;
-
-      p.desc {
-        margin: 0;
-
-        span.type,
-        span.required {
-          font-style: italic;
-
-          &::after {
-            content: " "
-          }
-        }
-      }
-
-      p.default {
-        font-style: italic;
-        margin: 0;
-      }
+    &:hover a.title-link::before {
+      position: absolute;
+      top: 5px;
+      left: -25px;
+      padding-right: 40px;
+      font-family: "FontAwesome";
+      font-size: 15px;
+      color: #999;
+      content: "";
     }
   }
+
+  .config-vars-label-name {
+    font-weight: bold;
+    font-size: 16px; 
+    color: #222222bd;
+  }
+
+  .config-vars-type {
+    color :#8792a2;
+    font-size: 13px;
+  }
+
+  .config-vars-required {
+    color :#8792a2;
+    font-size: 13px;
+    text-transform: lowercase;
+
+    .true {
+      color: #e56f4a;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+  }
+
+  .config-vars-description-and-children {
+    font-size: 14px;
+    color: #4f566b;
+  }
+
+  .config-vars-description p {
+    margin: 0;
+  }
+
+  .config-vars-default {
+    padding-top: 8px;
+
+    p {
+      margin: 0;
+      display: inline;
+    }
+  }
+
+  .nested {
+    margin-left: 48px;
+  }
+}
+
+code {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: 0.8em;
+  color: #1990b8;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+
+  background-color: #fdfdfd;
+  background-image: linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);
+  background-size: 3em 3em;
+  background-origin: content-box;
+  background-attachment: local;
+
+  border: 1px solid #ddd;
+  border-radius: 0.4em;
+  padding: .1em .4em
 }

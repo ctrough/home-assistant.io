@@ -1,12 +1,10 @@
 ---
-layout: post
 title: "Set up Hass.io on top of a virtual machine"
 description: "A how-to about using Hass.io on x86_64 hardware in a virtualized way."
 date: 2017-11-29 06:00:00 +0000
 date_formatted: "November 29, 2017"
 author: Fabian Affolter
 author_twitter: fabaff
-comments: true
 categories: How-To
 og_image: /images/blog/2017-11-hassio-virtual/social.png
 ---
@@ -19,7 +17,7 @@ The images for the Raspberry Pi family and the Intel NUC are an easy way to get 
 Assuming that you already have setup `libvirtd`. You might need to install `virt-builder` and `virt-viewer` additionally.
 
 ```bash
-$ sudo dnf -y install libguestfs-tools-c virt-install virt-viewer
+sudo dnf -y install libguestfs-tools-c virt-install virt-viewer
 ```
 
 We will create a virtual machine with Debian 9 and a 10 GB disk image in the QCOW format. Use `$ virt-builder --list` to get an overview about what's operating systems are available if you prefer to use a different system.

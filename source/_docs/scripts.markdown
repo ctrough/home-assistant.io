@@ -1,12 +1,6 @@
 ---
-layout: page
 title: "Script Syntax"
 description: "Documentation for the Home Assistant Script Syntax."
-date: 2016-04-24 08:30 +0100
-sidebar: true
-comments: false
-sharing: true
-footer: true
 redirect_from: /getting-started/scripts/
 ---
 
@@ -28,7 +22,7 @@ script:
           message: 'Turned on the ceiling light!'
 ```
 
-### {% linkable_title Call a Service %}
+### Call a Service
 
 The most important one is the action to call a service. This can be done in various ways. For all the different possibilities, have a look at the [service calls page].
 
@@ -40,7 +34,15 @@ The most important one is the action to call a service. This can be done in vari
     brightness: 100
 ```
 
-### {% linkable_title Test a Condition %}
+#### Activate a Scene
+
+Scripts may also use a shortcut syntax for activating scenes instead of calling the `scene.turn_on` service.
+
+```yaml
+- scene: scene.morning_living_room
+```
+
+### Test a Condition
 
 While executing a script you can add a condition to stop further execution. When a condition does not return `true`, the script will stop executing. There are many different conditions which are documented at the [conditions page].
 
@@ -51,7 +53,7 @@ While executing a script you can add a condition to stop further execution. When
   state: 'home'
 ```
 
-### {% linkable_title Delay %}
+### Delay
 
 Delays are useful for temporarily suspending your script and start it at a later moment. We support different syntaxes for a delay as shown below.
 
@@ -77,7 +79,7 @@ Delays are useful for temporarily suspending your script and start it at a later
 # Waits however many seconds input_number.second_delay is set to
 - delay:
     # Supports milliseconds, seconds, minutes, hours, days
-    seconds: "{{ states('input_number.second_delay') }}"
+    seconds: "{{ states('input_number.second_delay') | int }}"
 ```
 {% endraw %}
 
@@ -89,7 +91,7 @@ Delays are useful for temporarily suspending your script and start it at a later
 ```
 {% endraw %}
 
-### {% linkable_title Wait %}
+### Wait
 
 Wait until some things are complete. We support at the moment `wait_template` for waiting until a condition is `true`, see also on [Template-Trigger](/docs/automation/trigger/#template-trigger). It is possible to set a timeout after which the script will continue its execution if the condition is not satisfied. Timeout has the same syntax as `delay`.
 
@@ -105,7 +107,6 @@ Wait until some things are complete. We support at the moment `wait_template` fo
 # Wait for sensor to trigger or 1 minute before continuing to execute.
 - wait_template: "{{ is_state('binary_sensor.entrance', 'on') }}"
   timeout: '00:01:00'
-  continue_on_timeout: 'true'
 ```
 {% endraw %}
 
@@ -131,7 +132,7 @@ It is also possible to use dummy variables, e.g., in scripts, when using `wait_t
 ```
 {% endraw %}
 
-You can also get the script to abort after the timeout by using `continue_on_timeout`
+You can also get the script to abort after the timeout by using optional `continue_on_timeout`
 
 {% raw %}
 ```yaml
@@ -142,7 +143,9 @@ You can also get the script to abort after the timeout by using `continue_on_tim
 ```
 {% endraw %}
 
-### {% linkable_title Fire an Event %}
+Without `continue_on_timeout` the script will always continue.  
+
+### Fire an Event
 
 This action allows you to fire an event. Events can be used for many things. It could trigger an automation or indicate to another integration that something is happening. For instance, in the below example it is used to create an entry in the logbook.
 
@@ -167,7 +170,7 @@ an event trigger.
 ```
 {% endraw %}
 
-### {% linkable_title Raise and Consume Custom Events %}
+### Raise and Consume Custom Events
 
 The following automation shows how to raise a custom event called `event_light_state_changed` with `entity_id` as the event data. The action part could be inside a script or an automation.
 
@@ -200,8 +203,146 @@ The following automation shows how to capture the custom event `event_light_stat
 ```
 {% endraw %}
 
-[Script component]: /components/script/
+### Repeat a Group of Actions
+
+This action allows you to repeat a sequence of other actions. Nesting is fully supported.
+There are three ways to control how many times the sequence will be run.
+
+#### Counted Repeat
+
+This form accepts a count value. The value may be specified by a template, in which case
+the template is rendered when the repeat step is reached.
+
+{% raw %}
+```yaml
+script:
+  flash_light:
+    mode: restart
+    sequence:
+      - service: light.turn_on
+        data_template:
+          entity_id: "light.{{ light }}"
+      - repeat:
+          count: "{{ count|int * 2 - 1 }}"
+          sequence:
+            - delay: 2
+            - service: light.toggle
+              data_template:
+                entity_id: "light.{{ light }}"
+  flash_hallway_light:
+    sequence:
+      - service: script.flash_light
+        data:
+          light: hallway
+          count: 3
+```
+{% endraw %}
+
+#### While Loop
+
+This form accepts a list of conditions (see [conditions page] for available options) that are evaluated _before_ each time the sequence
+is run. The sequence will be run _as long as_ the condition(s) evaluate to true.
+
+{% raw %}
+```yaml
+script:
+  do_something:
+    sequence:
+      - service: script.get_ready_for_something
+      - alias: Repeat the sequence AS LONG AS the conditions are true
+        repeat:
+          while:
+            - condition: state
+              entity_id: input_boolean.do_something
+              state: 'on'
+            # Don't do it too many times
+            - condition: template
+              value_template: "{{ repeat.index <= 20 }}"
+          sequence:
+            - service: script.something
+```
+{% endraw %}
+
+#### Repeat Until
+
+This form accepts a list of conditions that are evaluated _after_ each time the sequence
+is run. Therefore the sequence will always run at least once. The sequence will be run
+_until_ the condition(s) evaluate to true.
+
+{% raw %}
+```yaml
+automation:
+  - trigger:
+      - platform: state
+        entity_id: binary_sensor.xyz
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: binary_sensor.something
+        state: 'off'
+    mode: single
+    action:
+      - alias: Repeat the sequence UNTIL the conditions are true
+        repeat:
+          sequence:
+            # Run command that for some reason doesn't always work
+            - service: shell_command.turn_something_on
+            # Give it time to complete
+            - delay:
+                milliseconds: 200
+          until:
+            # Did it work?
+            - condition: state
+              entity_id: binary_sensor.something
+              state: 'on'
+```
+{% endraw %}
+
+#### Repeat Loop Variable
+
+A variable named `repeat` is defined within the repeat action (i.e., it is available inside `sequence`, `while` & `until`.)
+It contains the following fields:
+
+field | description
+-|-
+`first` | True during the first iteration of the repeat sequence
+`index` | The iteration number of the loop: 1, 2, 3, ...
+`last` | True during the last iteration of the repeat sequence, which is only valid for counted loops
+
+### Choose a Group of Actions
+
+This action allows you to select a sequence of other actions from a list of sequences.
+Nesting is fully supported.
+Each sequence is paired with a list of conditions (see [conditions page] for available options.) The first sequence whose conditions are all true will be run.
+An optional `default` sequence can be included which will be run if none of the sequences from the list are run.
+
+{% raw %}
+```yaml
+automation:
+  - trigger:
+      - platform: state
+        entity_id: binary_sensor.motion
+    mode: queued
+    action:
+      - choose:
+          # IF motion detected
+          - conditions:
+              - condition: template
+                value_template: "{{ trigger.to_state.state == 'on' }}"
+            sequence:
+              - service: script.turn_on
+                entity_id:
+                  - script.slowly_turn_on_front_lights
+                  - script.announce_someone_at_door
+        # ELSE (i.e., motion stopped)
+        default:
+          - service: light.turn_off
+            entity_id: light.front_lights
+```
+{% endraw %}
+
+[Script component]: /integrations/script/
 [automations]: /getting-started/automation-action/
-[Alexa/Amazon Echo]: /components/alexa/
+[Alexa/Amazon Echo]: /integrations/alexa/
 [service calls page]: /getting-started/scripts-service-calls/
 [conditions page]: /getting-started/scripts-conditions/
